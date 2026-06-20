@@ -46,7 +46,7 @@ wrapper reads `image_generation_call.result` out of the newest
 **As a Claude Code skill** (personal skills live in `~/.claude/skills/`):
 
 ```bash
-git clone https://github.com/<you>/claude-skill-image-gen ~/.claude/skills/image-gen
+git clone https://github.com/RaphLorr/claude-skill-image-gen ~/.claude/skills/image-gen
 ```
 
 Then in Claude Code, just ask for an image — the skill auto-triggers. Or run the
