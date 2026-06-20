@@ -1,0 +1,16 @@
+# Generated images / local output
+assets/generated/
+*.png
+*.jpg
+*.jpeg
+*.webp
+!docs/**/*.png
+
+# Python
+__pycache__/
+*.pyc
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
