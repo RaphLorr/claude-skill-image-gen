@@ -25,9 +25,9 @@ import sys
 import time
 from pathlib import Path
 
-# Optional proxy for region-blocked networks; default none. Set IMAGE_GEN_PROXY
-# (e.g. "127.0.0.1:7890") or pass --proxy. Routing applies to the codex run only.
-DEFAULT_PROXY = os.environ.get("IMAGE_GEN_PROXY", "").strip()
+# Optional proxy for region-blocked networks. Local default points at this
+# machine's proxy; override with IMAGE_GEN_PROXY env or --proxy ('none' disables).
+DEFAULT_PROXY = os.environ.get("IMAGE_GEN_PROXY", "127.0.0.1:10808").strip()
 SESSIONS_DIR = Path.home() / ".codex" / "sessions"
 SESSION_ID_RE = re.compile(r"session id:\s*([0-9a-fA-F-]{16,})")
 IMAGE_MAGIC = (b"\x89PNG\r\n\x1a\n", b"\xff\xd8\xff", b"GIF8", b"RIFF")

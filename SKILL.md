@@ -59,7 +59,8 @@ Pick from the user's intent; pass an aspect keyword, a ratio, or exact pixels:
   wrapper never reads that file — only the official `codex` binary does.
 - Consumes the user's **ChatGPT plan quota**, ~**3–5× the tokens** of a text
   turn. Don't batch-generate casually.
-- **Region-blocked networks:** if OpenAI is unreachable (e.g. behind a national
-  firewall), set a proxy via `--proxy host:port` or the `IMAGE_GEN_PROXY` env
-  var. A "Connection reset" error means no working route to OpenAI.
+- **Proxy (this machine):** routes through `127.0.0.1:10808` by default — you do
+  NOT need to pass `--proxy`. If generation fails with a "Connection reset" or
+  timeout error, the proxy is off: run `proxy_on` first, then retry. Override the
+  route with `--proxy host:port` / `IMAGE_GEN_PROXY`, or disable with `--proxy none`.
 - Generation takes ~30–90s; the script retries once if the connection stalls.
