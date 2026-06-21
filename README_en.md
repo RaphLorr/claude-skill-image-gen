@@ -98,8 +98,7 @@ python3 scripts/generate.py "<prompt>" [options]
 | `-o, --out PATH` | `assets/generated/image.png` | Output PNG path |
 | `-q, --quality` | `auto` | `auto` \| `low` \| `medium` \| `high` |
 | `-s, --size` | `auto` | `auto` \| `WIDTHxHEIGHT` \| `square`/`portrait`/`landscape`/`wide`/`tall` \| `1:1`/`2:3`/`3:2`/`16:9`/`9:16` |
-| `-r, --ref PATH` | _(none)_ | Reference image (repeatable); enables image-to-image — style-only by default |
-| `--edit` | `false` | With `--ref`: edit/transform the reference, preserving its subject |
+| `-r, --ref PATH` | _(none)_ | Reference image (repeatable); image-to-image — the prompt decides style-vs-edit |
 | `--proxy HOST:PORT` | _(none)_ | Proxy for region-blocked networks (or `none`) |
 | `--timeout N` | `240` | Seconds per attempt |
 

@@ -98,8 +98,7 @@ python3 scripts/generate.py "<提示词>" [选项]
 | `-o, --out PATH` | `assets/generated/image.png` | 输出 PNG 路径 |
 | `-q, --quality` | `auto` | `auto` \| `low` \| `medium` \| `high` |
 | `-s, --size` | `auto` | `auto` \| `宽x高` \| `square`/`portrait`/`landscape`/`wide`/`tall` \| `1:1`/`2:3`/`3:2`/`16:9`/`9:16` |
-| `-r, --ref PATH` | _（无）_ | 参考图，可重复；启用图生图（默认只迁移风格，主体听 prompt） |
-| `--edit` | `false` | 配合 `--ref`：保留参考图主体地改图（默认是只迁移风格） |
+| `-r, --ref PATH` | _（无）_ | 参考图，可重复；图生图（借风格 / 改图保留主体，由 prompt 决定） |
 | `--proxy HOST:PORT` | _（无）_ | 受限网络下的代理（或 `none`） |
 | `--timeout N` | `240` | 每次尝试的超时秒数 |
 

@@ -47,20 +47,19 @@ Pick from the user's intent; pass an aspect keyword, a ratio, or exact pixels:
 - omit (auto) — let the model choose.
 
 ## Reference image — `--ref <path>` (image-to-image)
-If the user provides or points to an existing image, pass it with `--ref <path>`
-(repeatable). Two modes:
-- **Style only (default):** the reference drives style, palette, and technique;
-  the prompt drives the subject. For "draw X in the style of this image".
-- **Edit / transform — add `--edit`:** PRESERVES the reference's subject and
-  changes only what the prompt asks (lighting, background, framing, styling,
-  colour grade). Use it to retouch or restyle an existing photo — especially of a
-  person ("把这张照片改成…", "turn this into a studio portrait", "change the background").
+Pass an existing image with `--ref <path>` (repeatable). There is **no mode flag**
+— the **prompt decides** how the reference is used, so always make the intent
+explicit in the prompt you write:
+- **Style transfer (new subject):** "in the style of the attached image, draw a
+  NEW …" — e.g. a cat logo styled like a reference fox logo.
+- **Edit / keep the subject:** "edit the attached photo, KEEP the same
+  person/subject, change only …" — e.g. turn a snapshot into a studio portrait.
 
 Examples
 - "make a cat logo in the same style as this fox" →
-  `… "a flat geometric cat-head logo" --ref fox.png --size square`
+  `… "a flat geometric cat-head logo, new subject: a cat, in the style of the attached image" --ref fox.png --size square`
 - "turn my photo into an editorial studio portrait" →
-  `… "elevated editorial studio portrait, soft directional light, complementing background" --ref me.jpg --edit --size portrait --quality high`
+  `… "edit the attached photo, keep the same person; elevated editorial studio portrait, soft directional light, complementing background" --ref me.jpg --size portrait --quality high`
 
 ## Examples
 - "draw a detailed watercolor cat for my wall" →
