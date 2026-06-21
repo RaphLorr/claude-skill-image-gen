@@ -64,6 +64,29 @@ Then just ask Claude Code for an image — the skill auto-triggers. Or run the s
 
 ## Usage
 
+Once installed, just **ask Claude Code in plain language** — the skill auto-triggers and you don't memorize any commands:
+
+> 💬 "draw a wide hero banner for this landing page, techy feel"
+> 💬 "a flat square robot avatar — draft quality is fine"
+> 💬 "generate a detailed watercolor cat for my README, portrait"
+
+Claude does the rest: **writes a rich prompt → picks quality/size → calls the skill → saves the image straight into your project**, then tells you the path.
+
+How the options get chosen is driven by the rules in `SKILL.md`; Claude maps your wording automatically:
+
+| When you say… | Claude picks |
+|---|---|
+| "detailed / photorealistic / hi-res / for print" | `--quality high` |
+| "quick / draft / placeholder" | `--quality low` |
+| "banner / header / scenery / wide" | `--size landscape` |
+| "poster / phone wallpaper / tall" | `--size portrait` |
+| "avatar / icon / square" | `--size square` |
+
+<details>
+<summary><b>Advanced: direct CLI (optional)</b></summary>
+
+You can also run the script yourself, without the agent:
+
 ```bash
 python3 scripts/generate.py "<prompt>" [options]
 ```
@@ -76,7 +99,8 @@ python3 scripts/generate.py "<prompt>" [options]
 | `--proxy HOST:PORT` | _(none)_ | Proxy for region-blocked networks (or `none`) |
 | `--timeout N` | `240` | Seconds per attempt |
 
-The saved file path is printed to stdout. When invoked as a skill, `SKILL.md` tells Claude how to map your wording to `--quality` / `--size` automatically.
+The saved file path is printed to stdout.
+</details>
 
 ### Behind a firewall? (e.g. mainland China)
 
