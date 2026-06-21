@@ -86,19 +86,29 @@ def build_proxy_env(proxy: str) -> dict[str, str]:
     return env
 
 
-def build_prompt(user_prompt: str, size_px: str | None, quality: str, has_ref: bool) -> str:
+def build_prompt(user_prompt: str, size_px: str | None, quality: str,
+                 has_ref: bool, edit: bool) -> str:
     specs = []
     if size_px:
         specs.append(f"Output exactly {size_px} pixels.")
     if quality != "auto":
         specs.append(f"Use {quality} rendering quality.")
     spec_line = (" ".join(specs) + "\n\n") if specs else ""
-    ref_line = (
-        "Use the attached image(s) as a STYLE reference — match their artistic "
-        "style, colour palette, and rendering technique, but follow the text below "
-        "for the subject and composition (do not copy the reference's subject).\n\n"
-        if has_ref else ""
-    )
+    if has_ref and edit:
+        ref_line = (
+            "Edit/transform the attached image per the instructions below. PRESERVE "
+            "the main subject's identity, face, and natural features — change only "
+            "what the instructions ask (lighting, background, framing, styling, "
+            "colour grade).\n\n"
+        )
+    elif has_ref:
+        ref_line = (
+            "Use the attached image(s) as a STYLE reference — match their artistic "
+            "style, colour palette, and rendering technique, but follow the text below "
+            "for the subject and composition (do not copy the reference's subject).\n\n"
+        )
+    else:
+        ref_line = ""
     return (
         "$imagegen Generate the following image using your built-in image "
         "generation tool (gpt-image-2). Do NOT save any file, do NOT run shell "
@@ -174,7 +184,8 @@ def attempt_once(prompt: str, out_dir: Path, proxy: str, timeout: int, refs: lis
 
 
 def generate(prompt: str, out_path: Path, *, size: str, quality: str,
-             proxy: str, timeout: int, refs: list[str] | None = None, attempts: int = 2) -> Path:
+             proxy: str, timeout: int, refs: list[str] | None = None,
+             edit: bool = False, attempts: int = 2) -> Path:
     out_path = out_path.expanduser().resolve()
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -184,7 +195,7 @@ def generate(prompt: str, out_path: Path, *, size: str, quality: str,
         raise RuntimeError("Not logged in to codex. Run: codex login")
 
     ref_paths = resolve_refs(refs)
-    full_prompt = build_prompt(prompt, resolve_size(size), quality, bool(ref_paths))
+    full_prompt = build_prompt(prompt, resolve_size(size), quality, bool(ref_paths), edit)
 
     # The connection occasionally stalls before the first token (common when
     # region-blocked); one retry rides over it. A stall costs no image quota.
@@ -215,6 +226,8 @@ def main() -> int:
                         help="auto | WIDTHxHEIGHT | square|portrait|landscape|wide|tall | 1:1|2:3|3:2|16:9|9:16.")
     parser.add_argument("-r", "--ref", action="append", metavar="PATH",
                         help="Reference image to guide generation (repeatable) — enables image-to-image.")
+    parser.add_argument("--edit", action="store_true",
+                        help="With --ref: edit/transform the reference and preserve its subject (vs style-only).")
     parser.add_argument("--proxy", default=DEFAULT_PROXY,
                         help="host:port proxy for region-blocked networks, or 'none'.")
     parser.add_argument("--timeout", type=int, default=240, help="Seconds per attempt before giving up.")
@@ -224,7 +237,7 @@ def main() -> int:
         path = generate(
             args.prompt, Path(args.out),
             size=args.size, quality=args.quality,
-            proxy=args.proxy, timeout=args.timeout, refs=args.ref,
+            proxy=args.proxy, timeout=args.timeout, refs=args.ref, edit=args.edit,
         )
     except (RuntimeError, ValueError) as error:
         log(f"[image-gen] ERROR: {error}")
