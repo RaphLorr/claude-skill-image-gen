@@ -15,7 +15,7 @@ official `codex` binary (it already holds the ChatGPT auth) and saves a PNG:
 
 ```bash
 python3 ~/.claude/skills/image-gen/scripts/generate.py "<detailed prompt>" \
-  --out <path/to/image.png> [--quality <q>] [--size <s>]
+  --out <path/to/image.png> [--quality <q>] [--size <s>] [--ref <image>]
 ```
 
 The script prints the saved file path on stdout. Show or embed it in your reply
@@ -45,6 +45,18 @@ Pick from the user's intent; pass an aspect keyword, a ratio, or exact pixels:
 - `square` / `1:1` — avatars, icons, app art, social posts.
 - `WIDTHxHEIGHT` (e.g. `1024x1024`) — when the user gives exact dimensions.
 - omit (auto) — let the model choose.
+
+## Reference image — `--ref <path>` (image-to-image)
+If the user provides or points to an existing image ("用这张图的风格…", "make a
+variant of this", "在这张基础上改…", keep a logo/character consistent), pass it with
+`--ref <path>` (repeatable for several references).
+- **Default = style only:** the reference drives style, palette, and technique;
+  the prompt drives the subject. Good for "draw X in the style of this image".
+- **To copy/edit the reference closely** (same subject, minor changes), say so in
+  the prompt — e.g. "edit this image: …", "keep the same composition, change …".
+
+Example — "make a cat logo in the same style as this fox" →
+`… "a flat geometric cat-head logo, app-icon style" --ref fox-logo.png --size square`
 
 ## Examples
 - "draw a detailed watercolor cat for my wall" →

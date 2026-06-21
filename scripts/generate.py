@@ -62,6 +62,17 @@ def resolve_size(size: str) -> str | None:
     )
 
 
+def resolve_refs(refs: list[str] | None) -> list[str]:
+    """Validate reference image paths and return them as absolute strings."""
+    resolved = []
+    for ref in refs or []:
+        path = Path(ref).expanduser()
+        if not path.is_file():
+            raise ValueError(f"reference image not found: {ref}")
+        resolved.append(str(path.resolve()))
+    return resolved
+
+
 def build_proxy_env(proxy: str) -> dict[str, str]:
     """Return os.environ plus proxy vars (codex's Rust client reads these)."""
     env = dict(os.environ)
@@ -75,33 +86,46 @@ def build_proxy_env(proxy: str) -> dict[str, str]:
     return env
 
 
-def build_prompt(user_prompt: str, size_px: str | None, quality: str) -> str:
+def build_prompt(user_prompt: str, size_px: str | None, quality: str, has_ref: bool) -> str:
     specs = []
     if size_px:
         specs.append(f"Output exactly {size_px} pixels.")
     if quality != "auto":
         specs.append(f"Use {quality} rendering quality.")
     spec_line = (" ".join(specs) + "\n\n") if specs else ""
+    ref_line = (
+        "Use the attached image(s) as a STYLE reference — match their artistic "
+        "style, colour palette, and rendering technique, but follow the text below "
+        "for the subject and composition (do not copy the reference's subject).\n\n"
+        if has_ref else ""
+    )
     return (
         "$imagegen Generate the following image using your built-in image "
         "generation tool (gpt-image-2). Do NOT save any file, do NOT run shell "
         "commands, and do NOT write code — just call the image generation tool "
         "once. The image will be retrieved automatically.\n\n"
-        f"{spec_line}"
+        f"{ref_line}{spec_line}"
         f"Image to generate: {user_prompt}"
     )
 
 
-def run_codex(prompt: str, workdir: Path, proxy: str, timeout: int) -> subprocess.CompletedProcess:
+def run_codex(prompt: str, workdir: Path, proxy: str, timeout: int,
+              refs: list[str]) -> subprocess.CompletedProcess:
     cmd = [
         "codex", "exec",
         "--skip-git-repo-check",
         "-s", "workspace-write",
         "-c", "model_reasoning_effort=low",  # image gen needs no deep reasoning; saves quota
         "-C", str(workdir),
-        prompt,
     ]
-    log(f"[image-gen] gpt-image-2 via codex{f' (proxy: {proxy})' if proxy else ''} …")
+    for ref in refs:
+        cmd += ["-i", ref]  # attach reference image(s) to the turn
+    if refs:
+        cmd.append("--")  # codex -i is variadic; terminate options so it can't eat the prompt
+    cmd.append(prompt)
+    note = f" (proxy: {proxy})" if proxy else ""
+    note += f" [{len(refs)} ref]" if refs else ""
+    log(f"[image-gen] gpt-image-2 via codex{note} …")
     try:
         return subprocess.run(
             cmd, env=build_proxy_env(proxy),
@@ -139,9 +163,9 @@ def extract_image_b64(rollout: Path) -> str:
     return result
 
 
-def attempt_once(prompt: str, out_dir: Path, proxy: str, timeout: int) -> bytes:
+def attempt_once(prompt: str, out_dir: Path, proxy: str, timeout: int, refs: list[str]) -> bytes:
     started = time.time()
-    proc = run_codex(prompt, out_dir, proxy, timeout)
+    proc = run_codex(prompt, out_dir, proxy, timeout, refs)
     rollout = find_rollout(f"{proc.stdout}\n{proc.stderr}", started)
     data = base64.b64decode(extract_image_b64(rollout))
     if not data.startswith(IMAGE_MAGIC):
@@ -150,7 +174,7 @@ def attempt_once(prompt: str, out_dir: Path, proxy: str, timeout: int) -> bytes:
 
 
 def generate(prompt: str, out_path: Path, *, size: str, quality: str,
-             proxy: str, timeout: int, attempts: int = 2) -> Path:
+             proxy: str, timeout: int, refs: list[str] | None = None, attempts: int = 2) -> Path:
     out_path = out_path.expanduser().resolve()
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -159,14 +183,15 @@ def generate(prompt: str, out_path: Path, *, size: str, quality: str,
     if not (Path.home() / ".codex" / "auth.json").exists():
         raise RuntimeError("Not logged in to codex. Run: codex login")
 
-    full_prompt = build_prompt(prompt, resolve_size(size), quality)
+    ref_paths = resolve_refs(refs)
+    full_prompt = build_prompt(prompt, resolve_size(size), quality, bool(ref_paths))
 
     # The connection occasionally stalls before the first token (common when
     # region-blocked); one retry rides over it. A stall costs no image quota.
     last_error: RuntimeError | None = None
     for n in range(1, attempts + 1):
         try:
-            data = attempt_once(full_prompt, out_path.parent, proxy, timeout)
+            data = attempt_once(full_prompt, out_path.parent, proxy, timeout, ref_paths)
             out_path.write_bytes(data)
             return out_path
         except RuntimeError as error:
@@ -188,6 +213,8 @@ def main() -> int:
                         help="Render quality (default: auto).")
     parser.add_argument("-s", "--size", default="auto",
                         help="auto | WIDTHxHEIGHT | square|portrait|landscape|wide|tall | 1:1|2:3|3:2|16:9|9:16.")
+    parser.add_argument("-r", "--ref", action="append", metavar="PATH",
+                        help="Reference image to guide generation (repeatable) — enables image-to-image.")
     parser.add_argument("--proxy", default=DEFAULT_PROXY,
                         help="host:port proxy for region-blocked networks, or 'none'.")
     parser.add_argument("--timeout", type=int, default=240, help="Seconds per attempt before giving up.")
@@ -197,7 +224,7 @@ def main() -> int:
         path = generate(
             args.prompt, Path(args.out),
             size=args.size, quality=args.quality,
-            proxy=args.proxy, timeout=args.timeout,
+            proxy=args.proxy, timeout=args.timeout, refs=args.ref,
         )
     except (RuntimeError, ValueError) as error:
         log(f"[image-gen] ERROR: {error}")
