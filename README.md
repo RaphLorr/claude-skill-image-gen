@@ -69,6 +69,7 @@ git clone https://github.com/RaphLorr/claude-skill-image-gen ~/.claude/skills/im
 > 💬 "给这个落地页画一张宽幅 banner，科技感一点"
 > 💬 "画个扁平风格的方形机器人头像，草图质量就行"
 > 💬 "给 README 生成一张精致的水彩猫，竖版"
+> 💬 "参考这张图的风格，画一个同款的猫 logo"（图生图）
 
 Claude 会自动完成：**写出丰富的 prompt → 选好质量/尺寸 → 调用 skill → 把图片直接存进你的项目**，然后把保存路径告诉你。
 
@@ -96,6 +97,7 @@ python3 scripts/generate.py "<提示词>" [选项]
 | `-o, --out PATH` | `assets/generated/image.png` | 输出 PNG 路径 |
 | `-q, --quality` | `auto` | `auto` \| `low` \| `medium` \| `high` |
 | `-s, --size` | `auto` | `auto` \| `宽x高` \| `square`/`portrait`/`landscape`/`wide`/`tall` \| `1:1`/`2:3`/`3:2`/`16:9`/`9:16` |
+| `-r, --ref PATH` | _（无）_ | 参考图，可重复；启用图生图（默认只迁移风格，主体听 prompt） |
 | `--proxy HOST:PORT` | _（无）_ | 受限网络下的代理（或 `none`） |
 | `--timeout N` | `240` | 每次尝试的超时秒数 |
 

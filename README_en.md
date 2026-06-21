@@ -69,6 +69,7 @@ Once installed, just **ask Claude Code in plain language** — the skill auto-tr
 > 💬 "draw a wide hero banner for this landing page, techy feel"
 > 💬 "a flat square robot avatar — draft quality is fine"
 > 💬 "generate a detailed watercolor cat for my README, portrait"
+> 💬 "in the style of this image, draw a matching cat logo" (image-to-image)
 
 Claude does the rest: **writes a rich prompt → picks quality/size → calls the skill → saves the image straight into your project**, then tells you the path.
 
@@ -96,6 +97,7 @@ python3 scripts/generate.py "<prompt>" [options]
 | `-o, --out PATH` | `assets/generated/image.png` | Output PNG path |
 | `-q, --quality` | `auto` | `auto` \| `low` \| `medium` \| `high` |
 | `-s, --size` | `auto` | `auto` \| `WIDTHxHEIGHT` \| `square`/`portrait`/`landscape`/`wide`/`tall` \| `1:1`/`2:3`/`3:2`/`16:9`/`9:16` |
+| `-r, --ref PATH` | _(none)_ | Reference image (repeatable); enables image-to-image — style-only by default |
 | `--proxy HOST:PORT` | _(none)_ | Proxy for region-blocked networks (or `none`) |
 | `--timeout N` | `240` | Seconds per attempt |
 
