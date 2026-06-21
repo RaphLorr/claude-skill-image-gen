@@ -64,6 +64,29 @@ git clone https://github.com/RaphLorr/claude-skill-image-gen ~/.claude/skills/im
 
 ## 用法
 
+装好后，在 Claude Code 里 **直接用自然语言提需求** 即可 —— skill 会自动触发，你不用记任何命令：
+
+> 💬 "给这个落地页画一张宽幅 banner，科技感一点"
+> 💬 "画个扁平风格的方形机器人头像，草图质量就行"
+> 💬 "给 README 生成一张精致的水彩猫，竖版"
+
+Claude 会自动完成：**写出丰富的 prompt → 选好质量/尺寸 → 调用 skill → 把图片直接存进你的项目**，然后把保存路径告诉你。
+
+参数怎么选由 `SKILL.md` 里的规则驱动，Claude 按你的措辞自动映射：
+
+| 你怎么说 | Claude 自动选择 |
+|---|---|
+| "精致 / 写实 / 高清 / 用于打印" | `--quality high` |
+| "草图 / 快速 / 占位图" | `--quality low` |
+| "banner / 头图 / 风景 / 宽幅" | `--size landscape` |
+| "海报 / 手机壁纸 / 竖版" | `--size portrait` |
+| "头像 / 图标 / 方形" | `--size square` |
+
+<details>
+<summary><b>进阶：直接命令行调用（可选）</b></summary>
+
+不依赖 agent，也可以自己跑脚本：
+
 ```bash
 python3 scripts/generate.py "<提示词>" [选项]
 ```
@@ -76,7 +99,8 @@ python3 scripts/generate.py "<提示词>" [选项]
 | `--proxy HOST:PORT` | _（无）_ | 受限网络下的代理（或 `none`） |
 | `--timeout N` | `240` | 每次尝试的超时秒数 |
 
-保存路径会打印到 stdout。作为 skill 调用时，`SKILL.md` 会指导 Claude 自动把你的措辞映射到 `--quality` / `--size`。
+保存路径会打印到 stdout。
+</details>
 
 ### 在防火墙后面？（如中国大陆）
 
