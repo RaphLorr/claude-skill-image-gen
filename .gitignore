@@ -6,6 +6,9 @@ assets/generated/
 *.webp
 !docs/**/*.png
 
+# Local scratch / temp
+tmp/
+
 # Python
 __pycache__/
 *.pyc
