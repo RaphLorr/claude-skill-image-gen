@@ -34,6 +34,13 @@ IMAGE_MAGIC = (b"\x89PNG\r\n\x1a\n", b"\xff\xd8\xff", b"GIF8", b"RIFF")
 
 QUALITY_CHOICES = ("auto", "low", "medium", "high")
 
+# Reasoning effort of the orchestrating model (NOT the pixel render quality).
+# Higher = the model thinks harder about the prompt before calling the image tool
+# (helps complex scenes, in-image text, identity-preserving --ref edits); it does
+# not change gpt-image-2's render. `low` is the fast default; `minimal` is rejected
+# by the API for the image_gen tool, so it is intentionally not offered.
+EFFORT_CHOICES = ("low", "medium", "high", "xhigh")
+
 # gpt-image-2 renders best at these native sizes; aspect keywords map onto them.
 PIXELS_RE = re.compile(r"^\d{3,4}x\d{3,4}$")
 SIZE_ALIASES = {
@@ -112,12 +119,14 @@ def build_prompt(user_prompt: str, size_px: str | None, quality: str, has_ref: b
 
 
 def run_codex(prompt: str, workdir: Path, proxy: str, timeout: int,
-              refs: list[str]) -> subprocess.CompletedProcess:
+              refs: list[str], effort: str) -> subprocess.CompletedProcess:
     cmd = [
         "codex", "exec",
         "--skip-git-repo-check",
         "-s", "workspace-write",
-        "-c", "model_reasoning_effort=low",  # image gen needs no deep reasoning; saves quota
+        # Default `low` keeps image gen fast and quota-cheap; raise via --effort
+        # only for complex prompts/text/edits where deeper planning helps.
+        "-c", f"model_reasoning_effort={effort}",
         "-C", str(workdir),
     ]
     for ref in refs:
@@ -165,9 +174,10 @@ def extract_image_b64(rollout: Path) -> str:
     return result
 
 
-def attempt_once(prompt: str, out_dir: Path, proxy: str, timeout: int, refs: list[str]) -> bytes:
+def attempt_once(prompt: str, out_dir: Path, proxy: str, timeout: int,
+                 refs: list[str], effort: str) -> bytes:
     started = time.time()
-    proc = run_codex(prompt, out_dir, proxy, timeout, refs)
+    proc = run_codex(prompt, out_dir, proxy, timeout, refs, effort)
     rollout = find_rollout(f"{proc.stdout}\n{proc.stderr}", started)
     data = base64.b64decode(extract_image_b64(rollout))
     if not data.startswith(IMAGE_MAGIC):
@@ -175,7 +185,7 @@ def attempt_once(prompt: str, out_dir: Path, proxy: str, timeout: int, refs: lis
     return data
 
 
-def generate(prompt: str, out_path: Path, *, size: str, quality: str,
+def generate(prompt: str, out_path: Path, *, size: str, quality: str, effort: str,
              proxy: str, timeout: int, refs: list[str] | None = None, attempts: int = 2) -> Path:
     out_path = out_path.expanduser().resolve()
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -193,7 +203,7 @@ def generate(prompt: str, out_path: Path, *, size: str, quality: str,
     last_error: RuntimeError | None = None
     for n in range(1, attempts + 1):
         try:
-            data = attempt_once(full_prompt, out_path.parent, proxy, timeout, ref_paths)
+            data = attempt_once(full_prompt, out_path.parent, proxy, timeout, ref_paths, effort)
             out_path.write_bytes(data)
             return out_path
         except RuntimeError as error:
@@ -217,6 +227,10 @@ def main() -> int:
                         help="auto | WIDTHxHEIGHT | square|portrait|landscape|wide|tall | 1:1|2:3|3:2|16:9|9:16.")
     parser.add_argument("-r", "--ref", action="append", metavar="PATH",
                         help="Reference image for image-to-image (repeatable); the prompt decides how it's used.")
+    parser.add_argument("-e", "--effort", choices=EFFORT_CHOICES, default="low",
+                        help="Model reasoning effort before the render (default: low). "
+                             "Raise for complex prompts/in-image text/--ref edits; "
+                             "does not change pixel quality, just prompt planning.")
     parser.add_argument("--proxy", default=DEFAULT_PROXY,
                         help="host:port proxy for region-blocked networks, or 'none'.")
     parser.add_argument("--timeout", type=int, default=240, help="Seconds per attempt before giving up.")
@@ -225,7 +239,7 @@ def main() -> int:
     try:
         path = generate(
             args.prompt, Path(args.out),
-            size=args.size, quality=args.quality,
+            size=args.size, quality=args.quality, effort=args.effort,
             proxy=args.proxy, timeout=args.timeout, refs=args.ref,
         )
     except (RuntimeError, ValueError) as error:

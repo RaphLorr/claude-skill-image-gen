@@ -99,6 +99,7 @@ python3 scripts/generate.py "<提示词>" [选项]
 | `-q, --quality` | `auto` | `auto` \| `low` \| `medium` \| `high` |
 | `-s, --size` | `auto` | `auto` \| `宽x高` \| `square`/`portrait`/`landscape`/`wide`/`tall` \| `1:1`/`2:3`/`3:2`/`16:9`/`9:16` |
 | `-r, --ref PATH` | _（无）_ | 参考图，可重复；图生图（借风格 / 改图保留主体，由 prompt 决定） |
+| `-e, --effort` | `low` | `low` \| `medium` \| `high` \| `xhigh` — 出图前模型的推理强度（只影响对 prompt 的理解规划，不改像素质量）。复杂指令 / 图内文字 / `--ref` 编辑时可调高 |
 | `--proxy HOST:PORT` | _（无）_ | 受限网络下的代理（或 `none`） |
 | `--timeout N` | `240` | 每次尝试的超时秒数 |
 

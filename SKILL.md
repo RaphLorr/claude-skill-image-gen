@@ -15,7 +15,7 @@ official `codex` binary (it already holds the ChatGPT auth) and saves a PNG:
 
 ```bash
 python3 ~/.claude/skills/image-gen/scripts/generate.py "<detailed prompt>" \
-  --out <path/to/image.png> [--quality <q>] [--size <s>] [--ref <image>]
+  --out <path/to/image.png> [--quality <q>] [--size <s>] [--ref <image>] [--effort <e>]
 ```
 
 The script prints the saved file path on stdout. Show or embed it in your reply
@@ -37,6 +37,17 @@ Always pass a descriptive path under the current project (e.g.
 - omit (auto) — no quality signal in the request.
 
 Higher quality costs more quota and time; don't default to `high`.
+
+## Choosing `--effort` (default: `low`)
+Reasoning effort of the orchestrating model *before* it calls the image tool —
+how hard it plans the prompt, **not** the pixel render quality. `low` is fastest
+and cheapest and is right for most requests. Raise it only when planning helps:
+- `medium` / `high` — complex multi-subject scenes, accurate **text inside the
+  image**, infographics/diagrams, or careful identity-preserving `--ref` edits.
+- `xhigh` — rarely; only when `high` still misreads an intricate prompt.
+
+`low` is the floor for image generation (`minimal` is rejected by the API for the
+image tool). Higher effort is slower and uses more quota, so don't default to it.
 
 ## Choosing `--size` (default: `auto`)
 Pick from the user's intent; pass an aspect keyword, a ratio, or exact pixels:
