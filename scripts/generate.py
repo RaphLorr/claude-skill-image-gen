@@ -69,6 +69,24 @@ def resolve_size(size: str) -> str | None:
     )
 
 
+def default_timeout(size_px: str | None) -> int:
+    """Per-attempt ceiling, scaled to the requested size.
+
+    Big renders legitimately take longer, and killing one mid-flight wastes
+    quota — so large sizes get more headroom. Small/auto jobs stay short so a
+    stalled connection (common region-blocked) retries quickly instead of
+    hanging for minutes. Overridden by an explicit --timeout.
+    """
+    if not size_px:               # auto → model picks ~1024px; fast
+        return 300
+    long_edge = max(int(n) for n in size_px.split("x"))
+    if long_edge > 2048:          # 2.5K–4K
+        return 600
+    if long_edge > 1536:          # ~2K
+        return 480
+    return 300
+
+
 def resolve_refs(refs: list[str] | None) -> list[str]:
     """Validate reference image paths and return them as absolute strings."""
     resolved = []
@@ -186,7 +204,8 @@ def attempt_once(prompt: str, out_dir: Path, proxy: str, timeout: int,
 
 
 def generate(prompt: str, out_path: Path, *, size: str, quality: str, effort: str,
-             proxy: str, timeout: int, refs: list[str] | None = None, attempts: int = 2) -> Path:
+             proxy: str, timeout: int | None = None, refs: list[str] | None = None,
+             attempts: int = 2) -> Path:
     out_path = out_path.expanduser().resolve()
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -196,7 +215,10 @@ def generate(prompt: str, out_path: Path, *, size: str, quality: str, effort: st
         raise RuntimeError("Not logged in to codex. Run: codex login")
 
     ref_paths = resolve_refs(refs)
-    full_prompt = build_prompt(prompt, resolve_size(size), quality, bool(ref_paths))
+    size_px = resolve_size(size)
+    full_prompt = build_prompt(prompt, size_px, quality, bool(ref_paths))
+    if timeout is None:  # no explicit --timeout → scale the ceiling to the size
+        timeout = default_timeout(size_px)
 
     # The connection occasionally stalls before the first token (common when
     # region-blocked); one retry rides over it. A stall costs no image quota.
@@ -233,7 +255,9 @@ def main() -> int:
                              "does not change pixel quality, just prompt planning.")
     parser.add_argument("--proxy", default=DEFAULT_PROXY,
                         help="host:port proxy for region-blocked networks, or 'none'.")
-    parser.add_argument("--timeout", type=int, default=240, help="Seconds per attempt before giving up.")
+    parser.add_argument("--timeout", type=int, default=None,
+                        help="Seconds per attempt before giving up "
+                             "(default: auto — 300s, up to 600s for 2K/4K sizes).")
     args = parser.parse_args()
 
     try:

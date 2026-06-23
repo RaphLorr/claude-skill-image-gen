@@ -101,7 +101,7 @@ python3 scripts/generate.py "<prompt>" [options]
 | `-r, --ref PATH` | _(none)_ | Reference image (repeatable); image-to-image — the prompt decides style-vs-edit |
 | `-e, --effort` | `low` | `low` \| `medium` \| `high` \| `xhigh` — model reasoning before the render (prompt planning, not pixel quality). Raise for complex prompts/in-image text/`--ref` edits |
 | `--proxy HOST:PORT` | _(none)_ | Proxy for region-blocked networks (or `none`) |
-| `--timeout N` | `240` | Seconds per attempt |
+| `--timeout N` | auto | Seconds per attempt; auto-scales with size (300s, up to 600s for 2K/4K) |
 
 The saved file path is printed to stdout.
 </details>

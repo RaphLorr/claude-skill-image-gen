@@ -101,7 +101,7 @@ python3 scripts/generate.py "<提示词>" [选项]
 | `-r, --ref PATH` | _（无）_ | 参考图，可重复；图生图（借风格 / 改图保留主体，由 prompt 决定） |
 | `-e, --effort` | `low` | `low` \| `medium` \| `high` \| `xhigh` — 出图前模型的推理强度（只影响对 prompt 的理解规划，不改像素质量）。复杂指令 / 图内文字 / `--ref` 编辑时可调高 |
 | `--proxy HOST:PORT` | _（无）_ | 受限网络下的代理（或 `none`） |
-| `--timeout N` | `240` | 每次尝试的超时秒数 |
+| `--timeout N` | 自动 | 每次尝试的超时秒数；随尺寸自动调整（默认 300s，2K/4K 最多 600s） |
 
 保存路径会打印到 stdout。
 </details>

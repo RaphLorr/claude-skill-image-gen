@@ -88,4 +88,7 @@ Examples
 - **Region-blocked networks:** if OpenAI is unreachable (e.g. behind a national
   firewall), set a proxy via `--proxy host:port` or the `IMAGE_GEN_PROXY` env
   var. A "Connection reset" error means no working route to OpenAI.
-- Generation takes ~30–90s; the script retries once if the connection stalls.
+- Generation usually takes ~30–120s (longer for 2K/4K). The per-attempt
+  timeout auto-scales with `--size` (300s default, up to 600s for big sizes) so
+  large renders aren't cut off mid-flight; the script also retries once if the
+  connection stalls. Override with `--timeout <seconds>` only if needed.
