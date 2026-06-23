@@ -72,7 +72,7 @@ Once installed, just **ask Claude Code in plain language** — the skill auto-tr
 > 💬 "in the style of this image, draw a matching cat logo" (image-to-image)
 > 💬 "turn this photo into an editorial studio portrait, keep the person" (image edit)
 
-Claude does the rest: **writes a rich prompt → picks quality/size → calls the skill → saves the image straight into your project**, then tells you the path.
+Claude does the rest: **writes a rich prompt → picks quality / size / effort → calls the skill → saves the image straight into your project**, then tells you the path.
 
 How the options get chosen is driven by the rules in `SKILL.md`; Claude maps your wording automatically:
 
@@ -83,6 +83,7 @@ How the options get chosen is driven by the rules in `SKILL.md`; Claude maps you
 | "banner / header / scenery / wide" | `--size landscape` |
 | "poster / phone wallpaper / tall" | `--size portrait` |
 | "avatar / icon / square" | `--size square` |
+| "complex scene / text in the image / careful edit" | `--effort high` |
 
 <details>
 <summary><b>Advanced: direct CLI (optional)</b></summary>
